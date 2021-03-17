@@ -1,0 +1,17 @@
+version: '2'
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+         - nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./conf.d/my_proxy.conf:/etc/nginx/conf.d/my_proxy.conf:ro
+    restart: always
+networks:
+    nginx-proxy:
