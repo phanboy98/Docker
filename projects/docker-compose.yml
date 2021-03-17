@@ -1,0 +1,81 @@
+version: "3"
+
+services:
+  app:
+    image: dtnsolutions/magento-nginx:1.18-4
+    expose:
+      - 8443
+    networks: 
+      - nginx-proxy
+    environment:
+      VIRTUAL_HOST: milwaukee.localhost
+      VIRTUAL_PROTO: https
+      VIRTUAL_PORT: 8443
+    links:
+      - db
+      - phpfpm
+    volumes: &appvolumes
+      - ~/.composer:/var/www/.composer:cached
+      - appdata:/var/www/html
+      - sockdata:/sock
+      - ssldata:/etc/nginx/certs
+
+  phpfpm:
+    image: dtnsolutions/magento-php:7.4-fpm-2
+    links:
+      - db
+    volumes: *appvolumes
+
+  db:
+    image: percona:5.7
+    command: --max_allowed_packet=64M
+    expose:
+      - 3306
+    env_file: env/db.env
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  redis:
+    image: redis:5.0-alpine
+
+  elasticsearch:
+    image: markoshust/magento-elasticsearch:7.6.2-2
+    expose:
+      - 9200
+      - 9300
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  rabbitmq:
+    image: rabbitmq:3.7-management-alpine
+    expose:
+      - 15672
+      - 5672
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+
+  # Disabling cron by default as it uses higher CPU, enable if needed
+  #cron:
+  #  image: markoshust/magento-php:7.4-fpm-2
+  #  user: root
+  #  command: /usr/local/bin/cronstart
+  #  tty: true
+  #  links:
+  #    - db
+  #  volumes: *appvolumes
+
+volumes:
+  appdata:
+  dbdata:
+  esdata:
+  rabbitmqdata:
+  sockdata:
+  ssldata:
+
+networks: 
+  nginx-proxy:
+    external: 
+      name: docker-nginx-proxy_nginx-proxy

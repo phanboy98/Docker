@@ -1,0 +1,78 @@
+version: "3"
+
+services:
+  app:
+    image: dtnsolutions/magento-nginx:1.18-4
+    ports:
+      - "443:8443"
+      - "2222:22"
+    links:
+      - db
+      - phpfpm
+    volumes: &appvolumes
+      - ~/.composer:/var/www/.composer:cached
+      - appdata:/var/www/html
+      - ./shared/deploy:/var/www/deploy:cached
+      - ./share/app/etc/env.php:/var/www/html/app/etc/env.php:cached
+      - ./shared/pub/media:/var/www/html/pub/media:cached
+      - ./shared/var/log:/var/www/html/var/log:cached
+      - ./shared/var/backups:/var/www/html/var/backups:cached
+      - ./shared/var/session:/var/www/html/var/session:cached
+      - ./shared/var/report:/var/www/html/var/report:cached
+      - sockdata:/sock
+      - ssldata:/etc/nginx/certs
+
+  phpfpm:
+    image: dtnsolutions/magento-php:7.4-fpm-2
+    links:
+      - db
+    volumes: *appvolumes
+
+  db:
+    image: percona:5.7
+    command: --max_allowed_packet=64M
+    expose:
+      - 3306
+    env_file: env/db.env
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  redis:
+    image: redis:5.0-alpine
+
+  elasticsearch:
+    image: markoshust/magento-elasticsearch:7.6.2-2
+    expose:
+      - 9200
+      - 9300
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  rabbitmq:
+    image: rabbitmq:3.7-management-alpine
+    expose:
+      - 15672
+      - 5672
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+
+  # Disabling cron by default as it uses higher CPU, enable if needed
+  #cron:
+  #  image: dtnsolutions/magento-php:7.4-fpm-2
+  #  user: root
+  #  command: /usr/local/bin/cronstart
+  #  tty: true
+  #  links:
+  #    - db
+  #  volumes: *appvolumes
+  
+volumes:
+  appdata:
+  dbdata:
+  esdata:
+  rabbitmqdata:
+  sockdata:
+  ssldata:

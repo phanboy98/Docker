@@ -1,0 +1,7 @@
+
+docker-nginx-proxy : create nginx proxy
+
+projects : 
+  docker to project
+  mkdir src
+  copy source to src
