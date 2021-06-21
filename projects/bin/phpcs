@@ -1,0 +1,2 @@
+#!/bin/bash
+bin/cli ./vendor/bin/php-cs-fixer --config=./_CI_CD/.php_cs.dist fix -v

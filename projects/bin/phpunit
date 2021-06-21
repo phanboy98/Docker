@@ -1,0 +1,2 @@
+#!/bin/bash
+bin/cli ./vendor/bin/phpunit --configuration=./_CI_CD/phpunit.xml.dist --coverage-html ./phpunittest

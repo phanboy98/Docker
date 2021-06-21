@@ -1,0 +1,8 @@
+parameters:
+	paths:
+	    - %currentWorkingDirectory%/app/code/B2S/
+	excludes_analyse:
+	    - %currentWorkingDirectory%/app/code/B2S/*/Test/*
+	    - %currentWorkingDirectory%/app/code/B2S/*/view/*
+	level: 8
+	checkMissingIterableValueType: false
